@@ -68,11 +68,9 @@ Donation_Education_data = Donation_Education_data["Names"]
 
 print(food_dining_data.shape, transport_data.shape, Utilities_and_bills_data.shape, Shopping_Retail_data.shape, Healthcare_Wellness_data.shape, Subscriptions_Entertainment_data.shape, Financial_Services_Fees_data.shape, Donation_Education_data.shape)
 
-restaurant_data = df.loc[df['Category'] == 'Restaurants', ['Description',"Amount"]]
-restaurant_data.drop_duplicates(inplace=True)
-food_dining_data.to_csv("/content/drive/MyDrive/colab data/transport data/food_dining_updated.csv",index=False)
+int(food_dining_data.shape[0])
 
-fake = Faker()
+
 
 categories = {
     "Food & Dining": food_dining_data ,
@@ -85,44 +83,954 @@ categories = {
     "Donations & Education": Donation_Education_data
 }
 
+
+
+
+
+from faker import Faker
+import random
+
+fake = Faker()
+food_dining_data_list = food_dining_data.tolist()
+food_dining_templates = [
+  '{keyword} dinner purchase {date} {city}',
+ '{keyword} lunch transaction {date}',
+ '{keyword} meal payment {city}',
+ 'bill payment at {keyword} {date}',
+ '{keyword} restaurant charge {city}',
+ '{keyword} dining services {date}',
+ 'restaurant payment {keyword} on {date} {city}',
+ '{keyword} bill settled - {date} ref#{transfer_number}',
+ 'auto-debit from {keyword} {city}',
+ '{keyword} table reservation payment {date}',
+ '{keyword} coffee purchase {date}',
+ '{keyword} beverage bill {city} ref#{transfer_number}',
+ 'payment at {keyword} cafe {date}',
+ '{keyword} snacks & drinks charge {city} ref#{transfer_number}',
+ '{keyword} coffeehouse transaction {date} {city}',
+ 'beverage purchase at {keyword} {city}',
+ '{keyword} fast food purchase {date}',
+ 'drive-thru transaction at {keyword} {city}',
+ 'meal payment at {keyword} {date}',
+ '{keyword} quick service charge {city}',
+ '{keyword} takeaway bill {date} {city}',
+ 'fast food order at {keyword} - {date}',
+ '{keyword} drinks payment {date} {city}',
+ '{keyword} bar charge {date}',
+ '{keyword} pub bill {city}',
+ 'payment to {keyword} pub {date}',
+ '{keyword} nightlife transaction {city}',
+ 'drinks purchase at {keyword} {date}',
+ '{keyword} food delivery order {date}',
+ '{keyword} order charge {city}',
+ 'online transaction - {keyword} {date}',
+ 'food order placed at {keyword} {city}',
+ '{keyword} meal payment {date}',
+ 'home delivery bill via {keyword} {city}',
+ '{keyword} takeout order {date} {city} ref#{transfer_number}'
+]
+
+def generate_transaction_description_food_dining(keywords, templates):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         city = fake.city(),
+                         transfer_number=fake.bothify(text="??#??????#"))
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_food_dining = generate_transaction_description_food_dining(food_dining_data_list, food_dining_templates)
+
+food_dining_data = pd.DataFrame(transactions_food_dining)
+food_dining_data.head()
+
+food_dining_data.shape
+
+"""## Transport
+
+"""
+
 from faker import Faker
 import random
 
 fake = Faker()
 
-def generate_bank_statement():
-    descriptions = []
+transport_data_list = transport_data.tolist()
+city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+texas_city_list = city_texas["Names"].tolist()
 
-    # Simulate a list of Zelle payments, purchases, and transfers
-    for _ in range(15):  # Generate 15 transactions
-        transaction_type = random.choice(["Zelle payment", "Online Banking payment", "HULU", "UBER", "Bank of America"])
+code = ["pending", "approved", "declined", "completed", "cancelled"]
 
-        if "Zelle payment" in transaction_type:
-            direction = random.choice(["from", "to"])  # Randomly choose if it's from or to
-            name = fake.name()
-            conf_num = fake.uuid4()
-            descriptions.append(f"Zelle payment {direction} {name} Conf# {conf_num[:8]}")  # Using a short part of the uuid4 for Conf# to simulate your format
-        elif "Online Banking payment" in transaction_type:
-            card_num = f"CRD {random.randint(1000, 9999)}"
-            conf_num = fake.uuid4()
-            descriptions.append(f"{transaction_type} to {card_num} Confirmation# {conf_num[:8]}")
-        elif "HULU" in transaction_type:
-            location = fake.city()
-            date = fake.date_this_year().strftime("%m/%d")
-            descriptions.append(f"HULU {date} PURCHASE {location} CA")
-        elif "UBER" in transaction_type:
-            location = fake.city()
-            date = fake.date_this_year().strftime("%m/%d")
-            descriptions.append(f"UBER * PENDI {date} PURCHASE {location} CA")
-        elif "Bank of America" in transaction_type:
-            descriptions.append(f"Bank of America DES:CASHREWARD ID:PARA INDN:{fake.bban()} CO ID:{fake.bban()} PPD")
+transport_templates = [
+ 'payment for {keyword} ride to {destination}',
+ '{keyword} trip to {destination} - payment',
+ 'fare for {keyword} ride from {pickup_location} to {destination}',
+ '{keyword} ride payment {pickup_location} to {destination}',
+ 'fuel purchase at {keyword} station',
+ 'flight booking payment for {keyword} to {destination}',
+ '{keyword} airline ticket to {destination}',
+ 'car rental payment at {keyword}',
+ '{keyword} parking charge at {location}',
+ 'toll payment at {keyword} gate',
+ 'public transport fare with {keyword}',
+ 'booking fee for {keyword} service',
+ 'travel with {keyword} from {pickup_location} to {destination}',
+ '{keyword} * {code} {date} purchase {location}',
+ '{location} airport parking {location} tx',
+ '{keyword} travel service - {date} {location}',
+ '{location} fuel purchase - {date} {keyword}',
+ '{keyword} - parking ticket {date} {location}'
+ ]
 
-    return descriptions
+def generate_transaction_description_transport(keywords, templates, texas_city_list, code):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         destination = random.choice(texas_city_list),
+                         pickup_location = random.choice(texas_city_list),
+                         location = fake.city(),
+                         code = random.choice(code))
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
 
-# Generate and print the bank statement descriptions
-bank_statement = generate_bank_statement()
-for description in bank_statement:
-    print(description)
+transactions_transport = generate_transaction_description_transport(transport_data_list, transport_templates, texas_city_list, code)
+
+transport_data = pd.DataFrame(transactions_transport)
+transport_data.head()
+
+transport_data.shape
+
+"""# Utilities & Bills
+
+"""
+
+upper_template = [  "Donation made to {keyword} on {date} - {amount}",
+    "Charity contribution to {keyword} on {date}",
+    "Funds donated to {keyword} - {location}, {date}",
+    "Monthly donation to {keyword} on {date}",
+    "Donation to {keyword} from {source} on {date}",
+    "Payment to charitable organization {keyword} on {date} - {amount}",
+    "Support provided to {keyword} fundraiser on {date}",
+    "Charity payment to {keyword} - {amount}, {date}",
+    "Donation processed for {keyword} on {date}",
+    "Funds sent to {keyword} charitable account on {date}",
+    "Recurring charity payment to {keyword} - {amount}, {date}",
+    "Charity funds transfer to {keyword} on {date}",
+    "Support sent to {keyword} - {location}, {date}",
+
+    # Fundraisers
+    "Fundraiser contribution at {keyword} on {date} - {amount}",
+    "Funds raised for {keyword} on {date}",
+    "Donation to {recipient}'s fundraiser at {keyword} on {date}",
+    "Payment made for fundraiser at {keyword} on {date} - {location}",
+    "Contribution to {keyword} campaign - {amount}, {date}",
+    "Fundraiser donation sent to {keyword} on {date}",
+    "Payment made to support {keyword} on {date}",
+    "Fundraising payment processed for {keyword} on {date}",
+    "Contribution to {keyword}'s fundraiser - {amount}, {location}, {date}",
+    "Funds directed to {keyword} - {amount}, {location}, {date}",
+
+    # Tuition
+    "Tuition payment to {keyword} on {date} - {amount}",
+    "Education fees paid to {keyword} on {date}",
+    "Monthly tuition installment to {keyword} - {amount}, {date}",
+    "Course fee paid to {keyword} on {date}",
+    "School fees payment to {keyword} - {amount}, {date}",
+    "University payment made to {keyword} - {amount}, {location}, {date}",
+    "Tuition deposit sent to {keyword} on {date}",
+    "Enrollment payment for {keyword} on {date} - {amount}",
+    "Annual tuition paid to {keyword} on {date}",
+    "Semester fees sent to {keyword} - {amount}, {date}",
+    "Payment for educational services at {keyword} on {date}",
+    "Fee transfer for {keyword} educational institution - {amount}, {date}",
+    "Student payment processed for {keyword} on {date}",
+
+    # Learning Platforms
+    "Subscription to {keyword} learning platform on {date}",
+    "Course purchase from {keyword} on {date} - {amount}",
+    "E-learning payment to {keyword} - {amount}, {date}",
+    "Enrollment fee paid to {keyword} on {date}",
+    "Learning platform membership at {keyword} on {date}",
+    "Online class fee at {keyword} - {amount}, {date}",
+    "Education service payment to {keyword} on {date}",
+    "Learning content purchased from {keyword} on {date} - {amount}",
+    "Training course payment to {keyword} - {amount}, {date}",
+    "Digital course fee processed for {keyword} on {date}",
+    "Membership renewal for {keyword} education services - {date}",
+    "One-time course fee for {keyword} on {date} - {amount}",
+    "Platform access paid to {keyword} - {amount}, {date}"
+                    ]
+templates = []
+for t in upper_template:
+  templates.append(t.lower())
+templates
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Utilities_and_bills_data_list = Utilities_and_bills_data.tolist()
+city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+texas_city_list = city_texas["Names"].tolist()
 
 
+
+Utilities_and_bills_templates = ['payment to {keyword} electricity service {date}',
+ '{keyword} electricity bill paid {city_name} {date}',
+ '{keyword} power supply charge {date}',
+ 'electricity payment confirmed - {keyword} {city_name}',
+ '{keyword} energy service transaction {date}',
+ 'auto-debit for {keyword} electric bill {date}',
+ 'utility payment - {keyword} electricity {city_name}',
+ 'payment to {keyword} water utility {date}',
+ '{keyword} water bill paid {city_name} {date}',
+ '{keyword} water services payment {date}',
+ 'auto-debit for {keyword} water bill {city_name}',
+ 'water utility transaction - {keyword} {date}',
+ 'utility payment - {keyword} water supply {city_name}',
+ 'payment to {keyword} internet service {date}',
+ '{keyword} broadband bill paid {city_name} {date}',
+ 'internet service payment to {keyword} {date}',
+ '{keyword} wifi service transaction {city_name}',
+ 'online transaction - {keyword} internet bill {date}',
+ 'auto-debit for {keyword} wifi bill {city_name}',
+ 'mobile payment to {keyword} {date}',
+ '{keyword} mobile bill paid {city_name}',
+ 'recharge successful - {keyword} {date}',
+ '{keyword} telecom services charge {city_name}',
+ 'utility payment - {keyword} mobile {date}',
+ '{keyword} data service payment {city_name}',
+ 'insurance premium paid to {keyword} {date}',
+ '{keyword} insurance transaction {city_name}',
+ 'auto-debit for {keyword} insurance premium {date}',
+ '{keyword} policy payment {city_name}',
+ 'insurance coverage payment to {keyword} {date}',
+ 'online transaction - {keyword} insurance bill',
+ '{keyword} health insurance payment {date}',
+ 'auto-debit for {keyword} medical cover {city_name}',
+ '{keyword} policy charge {date}',
+ 'health insurance premium to {keyword} {city_name}',
+ '{keyword} medical insurance bill {date}',
+ 'life insurance premium paid to {keyword} {date}',
+ '{keyword} life cover payment {city_name}',
+ 'auto-debit for {keyword} life insurance {date}',
+ '{keyword} policy premium transaction {city_name}'
+ ]
+
+def generate_transaction_description_Utilities_and_bills(keywords, templates, texas_city_list):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         city_name = random.choice(texas_city_list))
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Utilities_and_bills = generate_transaction_description_Utilities_and_bills(Utilities_and_bills_data_list, Utilities_and_bills_templates, texas_city_list)
+
+Utilities_and_bills_data = pd.DataFrame(transactions_Utilities_and_bills)
+Utilities_and_bills_data.head()
+
+Utilities_and_bills_data.shape
+
+"""# Shopping_Retail"""
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Shopping_Retail_data_list = Shopping_Retail_data.tolist()
+city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+texas_city_list = city_texas["Names"].tolist()
+
+
+
+Shopping_Retail_templates = [
+  '{keyword} clothing purchase on {date} - {location}',
+ 'apparel transaction with {keyword} - {date}, {location}',
+ 'online order for clothing from {keyword} - {date}',
+ '{keyword} fashion store purchase on {date} - {location}',
+ 'payment for apparel at {keyword}, {location} - {date}',
+ 'clothing and accessories bought at {keyword} - {location}',
+ 'retail fashion payment at {keyword}, {location}',
+ '{keyword} clothing store expense - {date}, {location}',
+ 'shopping at {keyword} fashion outlet - {location}',
+ 'transaction for apparel at {keyword} - {date}',
+ 'wardrobe update from {keyword}, purchased on {date}',
+ 'electronics purchase at {keyword} on {date} - {location}',
+ 'online gadget order from {keyword} on {date}',
+ 'device transaction at {keyword} - {date}, {location}',
+ 'payment for electronics at {keyword}, {location} - {date}',
+ 'purchase of a gadget from {keyword} - {location}',
+ 'electronics expense at {keyword} store on {date}',
+ 'retail tech purchase at {keyword}, {location}',
+ 'online payment to {keyword} for electronics on {date}',
+ 'shopping at {keyword} electronics store - {location}',
+ 'device purchase at {keyword} on {date} - {location}',
+ 'tech product expense from {keyword} - {location}',
+ 'retail purchase from {keyword} on {date} - {location}',
+ 'shopping at {keyword} general store - {location}, {date}',
+ 'payment at {keyword} for retail items on {date}',
+ 'general store transaction at {keyword}, {location}',
+ 'expense for goods at {keyword} on {date}',
+ 'retail shopping at {keyword} - {date}, {location}',
+ 'transaction at {keyword} retail outlet - {location}',
+ 'purchase at {keyword} store - {date}, {location}',
+ '{keyword} store payment for general items on {date}',
+ 'shopping receipt: {keyword}, {location}, {date}',
+ 'general retail expense at {keyword} - {location}',
+ 'home improvement purchase at {keyword} on {date} - {location}',
+ 'diy supplies bought from {keyword} - {date}, {location}',
+ 'transaction for home improvement at {keyword}, {location}',
+ 'payment to {keyword} for renovation supplies on {date}',
+ 'purchase of hardware at {keyword} - {location}, {date}',
+ 'home supplies bought at {keyword}, {location}',
+ 'shopping at {keyword} for home improvement items - {date}',
+ 'expense at {keyword} home store - {location}, {date}',
+ 'retail payment to {keyword} for home essentials - {date}',
+ '{keyword} hardware purchase on {date}, location: {location}',
+ 'diy project supplies bought at {keyword} on {date} - {location}'
+ ]
+
+def generate_transaction_description_Shopping_Retail(keywords, templates, texas_city_list):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         location = random.choice(texas_city_list))
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Shopping_Retail = generate_transaction_description_Shopping_Retail(Shopping_Retail_data_list, Shopping_Retail_templates, texas_city_list)
+
+Shopping_Retail_data = pd.DataFrame(transactions_Shopping_Retail)
+Shopping_Retail_data.head()
+
+Shopping_Retail_data.shape
+
+"""#Healthcare_Wellness"""
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Healthcare_Wellness_data_list = Healthcare_Wellness_data.tolist()
+city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+texas_city_list = city_texas["Names"].tolist()
+
+
+
+Healthcare_Wellness_templates = [
+  'pharmacy purchase at {keyword}',
+ 'bought medication at {keyword} pharmacy - {location}',
+ 'prescription drugs from {keyword} on {date}',
+ 'healthcare products purchased at {keyword} - {location}',
+ 'pharmacy order at {keyword} on {date}',
+ 'over-the-counter medicine from {keyword}, {location}',
+ 'pharmacy expense - {keyword}, {location}, {date}',
+ 'online prescription refill from {keyword} on {date}',
+ 'medical supplies transaction at {keyword} - {location}',
+ 'retail purchase at {keyword} pharmacy - {location}, {date}',
+ 'expense for health products at {keyword} - {date}',
+ 'drugstore receipt from {keyword} on {date} - {location}',
+ 'pharmacy bill at {keyword} - {location}',
+ 'paid hospital charges at {keyword}',
+ 'medical services at {keyword} hospital - {date}',
+ 'treatment bill for {keyword} on {date}, {location}',
+ 'consultation fee at {keyword} hospital',
+ 'emergency care charges at {keyword}, {location}',
+ 'hospital visit at {keyword} - {location}',
+ 'surgery expense at {keyword} hospital - {date}, {location}',
+ 'inpatient service fee at {keyword} - {date}',
+ 'healthcare bill from {keyword}, {location}',
+ 'payment for hospital treatment at {keyword} - {location}',
+ 'medical procedure conducted at {keyword} on {date}',
+ 'specialist consultation at {keyword} - {location}',
+ 'radiology services from {keyword} hospital on {date}',
+ 'health insurance payment processed at {keyword} - {location}',
+ 'clinic visit expense at {keyword}',
+ 'primary care appointment at {keyword} clinic - {location}',
+ 'medical checkup fee at {keyword} - {date}',
+ "doctor's appointment at {keyword}, {location}",
+ 'outpatient care services from {keyword} clinic on {date}',
+ 'health consultation bill at {keyword} - {location}',
+ 'follow-up consultation at {keyword} clinic - {date}',
+ 'vaccination service at {keyword}, {location}',
+ 'medical testing expense at {keyword} clinic',
+ 'physician visit payment at {keyword}, {location} - {date}',
+ 'diagnostic lab tests at {keyword} on {date}',
+ 'payment for health services at {keyword} - {location}',
+ 'gym membership fee at {keyword}',
+ 'monthly subscription at {keyword} gym - {date}',
+ 'workout class payment at {keyword}, {location}',
+ 'fitness equipment purchase from {keyword} - {location}',
+ 'yoga session at {keyword} on {date} - {location}',
+ 'personal trainer payment to {keyword}, {location}',
+ 'online fitness course by {keyword} - {date}',
+ 'wellness program fee at {keyword} - {location}',
+ 'pilates class expense at {keyword} - {date}',
+ 'health club payment at {keyword} - {location}, {date}',
+ 'fitness session booking at {keyword} - {date}',
+ 'one-time fitness session at {keyword}, {location}',
+ 'gym equipment rental from {keyword} - {date}',
+ 'sports gear purchase at {keyword} - {location}',
+ 'bootcamp training session at {keyword}, {location} - {date}'
+ ]
+
+def generate_transaction_description_Healthcare_Wellness(keywords, templates, texas_city_list):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         location = random.choice(texas_city_list))
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Healthcare_Wellness = generate_transaction_description_Healthcare_Wellness(Healthcare_Wellness_data_list, Healthcare_Wellness_templates, texas_city_list)
+
+Healthcare_Wellness_data = pd.DataFrame(transactions_Healthcare_Wellness)
+Healthcare_Wellness_data.head()
+
+Healthcare_Wellness_data.shape
+
+"""# Subscriptions & Entertainment
+
+"""
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Subscriptions_Entertainment_data_list = Subscriptions_Entertainment_data.tolist()
+
+plan = ["Basic", "Premium", "Monthly Plan", "Annual Plan","One-time Purchase"]
+
+Subscriptions_Entertainment_templates = [
+  'subscription renewal at {keyword} on {date} - {plan}',
+ 'streaming service payment to {keyword} - {date}, {location}',
+ 'monthly plan charged by {keyword}, {location} - {plan}',
+ 'payment for {plan} subscription at {keyword} - {date}',
+ 'streaming fee paid to {keyword}, {location}',
+ 'annual subscription to {keyword} streaming service - {plan}',
+ 'movie streaming purchase on {keyword}, {date}, {location}',
+ 'one-time payment for streaming on {keyword} - {plan}, {location}',
+ 'streaming bill at {keyword} on {date} - {location}',
+ 'app store purchase from {keyword} - {date}, {location}',
+ 'in-app payment at {keyword} on {date} - {plan}',
+ 'monthly app subscription from {keyword}, {location} - {plan}',
+ 'premium app features purchased from {keyword} on {date}',
+ 'app upgrade fee at {keyword}, {location} - {plan}',
+ 'one-time payment for app at {keyword}, {location}',
+ 'subscription for app services at {keyword} - {plan}, {date}',
+ 'payment for mobile app at {keyword} - {location}, {date}',
+ 'digital app purchase from {keyword} on {date} - {location}',
+ 'annual app plan purchased at {keyword} - {plan}, {location}',
+ 'movie ticket purchase from {keyword} - {location}, {date}',
+ 'cinema expense at {keyword} on {date}, {plan}',
+ 'streaming rental fee for a movie at {keyword}, {location}',
+ 'one-time payment for movie download from {keyword} - {date}',
+ 'theater subscription at {keyword} - {location}, {plan}',
+ 'movie streaming bill from {keyword} on {date}, {plan}',
+ 'payment for movie ticket at {keyword} - {location}',
+ 'on-demand movie fee paid to {keyword} - {plan}, {location}',
+ 'cinema membership renewal at {keyword} on {date}',
+ 'film rental charge at {keyword} - {date}, {location}',
+ 'game purchase from {keyword} - {date}, {location}',
+ 'gaming subscription renewal at {keyword} on {date} - {plan}',
+ 'one-time purchase of a game at {keyword}, {location}',
+ 'online gaming fee paid to {keyword} - {date}, {plan}',
+ 'game pass subscription charged by {keyword}, {location} - {plan}',
+ 'in-game purchase at {keyword} on {date}',
+ 'annual gaming membership at {keyword} - {plan}, {location}',
+ 'payment for gaming services from {keyword} - {date}, {location}',
+ 'digital game download from {keyword} - {location}, {date}',
+ 'gaming platform subscription at {keyword} - {plan}, {date}'
+ ]
+
+def generate_transaction_description_Subscriptions_Entertainment(keywords, templates,plan):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         location = fake.city(),
+                         plan = random.choice(plan))
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Subscriptions_Entertainment = generate_transaction_description_Subscriptions_Entertainment(Subscriptions_Entertainment_data_list, Subscriptions_Entertainment_templates,plan)
+
+Subscriptions_Entertainment_data = pd.DataFrame(transactions_Subscriptions_Entertainment)
+Subscriptions_Entertainment_data.head()
+
+Subscriptions_Entertainment_data.shape
+
+"""# Financial_Services_Fees"""
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Financial_Services_Fees_data_list = Financial_Services_Fees_data.tolist()
+
+type = ["saving account", "checking account", "credit card", "debit card", "gift card"]
+
+
+Financial_Services_Fees_templates = [
+  'bank fee payment at {keyword} on {date} - {location}',
+ 'service charge from {keyword} bank on {date}',
+ 'atm withdrawal fee at {keyword} - {location}, {date}',
+ 'account maintenance fee at {keyword}, {location}',
+ 'monthly bank fee charged by {keyword} on {date}',
+ 'overdraft fee at {keyword} on {date}, {location}',
+ 'penalty fee from {keyword} bank - {location}, {date}',
+ 'transaction fee charged by {keyword} on {date}',
+ 'wire transfer fee at {keyword} - {location}, {date}',
+ 'foreign transaction fee at {keyword} on {date}',
+ 'transfer from {keyword} on {date} to {location}',
+ 'funds transferred from {keyword} to {account} on {date}',
+ 'payment sent via {keyword} - {location}, {date}',
+ 'wire transfer sent from {keyword} - {location}, {date}',
+ 'p2p transfer to {recipient} via {keyword} on {date}',
+ 'deposit into {keyword} account from {source} on {date}',
+ 'transfer to {keyword} account from {source} - {date}',
+ 'international transfer via {keyword} - {date}',
+ 'funds received at {keyword} from {source} on {date}',
+ 'bank transfer processed by {keyword} - {location}, {date}',
+ 'zelle transfer sent to {recipient} on {date}',
+ 'payment via zelle to {recipient} on {date} - {location}',
+ 'zelle transfer from {sender} on {date} to {recipient}',
+ 'received payment through zelle from {sender} on {date}',
+ 'funds transferred to {keyword} via zelle on {date}',
+ 'zelle payment processed to {recipient} on {date}',
+ 'transaction at {keyword} on {date} - {location}',
+ 'purchase made at {keyword} on {date} - {amount}',
+ 'payment made to {keyword} on {date} - {location}',
+ 'investment transaction with {keyword} on {date}',
+ 'loan repayment to {keyword} - {date}',
+ 'deposit made at {keyword} on {date}',
+ 'credit card payment to {keyword} on {date} - {location}',
+ 'financial transfer from {keyword} to {account} on {date}',
+ 'mortgage payment at {keyword} - {date}',
+ 'transaction fee at {keyword} on {date} - {amount}'
+ ]
+
+def generate_transaction_description_Financial_Services_Fees(keywords, templates,plan):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         location = fake.city(),
+                         recipient = fake.name(),
+                         sender = fake.name(),
+                         account = random.choice(type),
+                         amount = f"${random.uniform(10, 1000):.2f}",
+                         source = f"xxxx{random.randint(1000, 9999)}")
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Financial_Services_Fees = generate_transaction_description_Financial_Services_Fees(Financial_Services_Fees_data_list, Financial_Services_Fees_templates,plan)
+
+Financial_Services_Fees_data = pd.DataFrame(transactions_Financial_Services_Fees)
+Financial_Services_Fees_data.head()
+
+Financial_Services_Fees_data.shape
+
+"""# Donation_Education"""
+
+from faker import Faker
+import random
+
+fake = Faker()
+
+Donation_Education_data_list = Donation_Education_data.tolist()
+
+type = ["saving account", "checking account", "credit card", "debit card", "gift card"]
+
+
+Donation_Education_templates = [
+  'donation made to {keyword} on {date} ',
+ 'charity contribution to {keyword} on {date}',
+ 'funds donated to {keyword} - {location}, {date}',
+ 'monthly donation to {keyword} on {date}',
+ 'donation to {keyword} from {source} on {date}',
+ 'payment to charitable organization {keyword} on {date} ',
+ 'support provided to {keyword} fundraiser on {date}',
+ 'charity payment to {keyword} , {date}',
+ 'donation processed for {keyword} on {date}',
+ 'funds sent to {keyword} charitable account on {date}',
+ 'recurring charity payment to {keyword} , {date}',
+ 'charity funds transfer to {keyword} on {date}',
+ 'support sent to {keyword} - {location}, {date}',
+ 'fundraiser contribution at {keyword} on {date} ',
+ 'funds raised for {keyword} on {date}',
+ "donation to {recipient}'s fundraiser at {keyword} on {date}",
+ 'payment made for fundraiser at {keyword} on {date} - {location}',
+ 'contribution to {keyword} campaign , {date}',
+ 'fundraiser donation sent to {keyword} on {date}',
+ 'payment made to support {keyword} on {date}',
+ 'fundraising payment processed for {keyword} on {date}',
+ "contribution to {keyword}'s fundraiser , {location}, {date}",
+ 'funds directed to {keyword} , {location}, {date}',
+ 'tuition payment to {keyword} on {date} ',
+ 'education fees paid to {keyword} on {date}',
+ 'monthly tuition installment to {keyword} , {date}',
+ 'course fee paid to {keyword} on {date}',
+ 'school fees payment to {keyword} , {date}',
+ 'university payment made to {keyword} , {location}, {date}',
+ 'tuition deposit sent to {keyword} on {date}',
+ 'enrollment payment for {keyword} on {date} ',
+ 'annual tuition paid to {keyword} on {date}',
+ 'semester fees sent to {keyword} , {date}',
+ 'payment for educational services at {keyword} on {date}',
+ 'fee transfer for {keyword} educational institution , {date}',
+ 'student payment processed for {keyword} on {date}',
+ 'subscription to {keyword} learning platform on {date}',
+ 'course purchase from {keyword} on {date} ',
+ 'e-learning payment to {keyword} , {date}',
+ 'enrollment fee paid to {keyword} on {date}',
+ 'learning platform membership at {keyword} on {date}',
+ 'online class fee at {keyword} , {date}',
+ 'education service payment to {keyword} on {date}',
+ 'learning content purchased from {keyword} on {date} ',
+ 'training course payment to {keyword} {date}',
+ 'digital course fee processed for {keyword} on {date}',
+ 'membership renewal for {keyword} education services - {date}',
+ 'one-time course fee for {keyword} on {date} ',
+ 'platform access paid to {keyword} , {date}'
+ ]
+
+def generate_transaction_description_Donation_Education(keywords, templates):
+  transaction_descriptions = []
+  for keyword in keywords:
+    for template in templates:
+      transaction_description =  template.format(keyword=keyword,
+                         date=fake.date(pattern="%m/%d"),
+                         location = fake.city(),
+                         recipient = fake.name(),
+                         source = f"xxxx{random.randint(1000, 9999)}")
+
+      transaction_descriptions.append(transaction_description)
+  return transaction_descriptions
+
+transactions_Donation_Education = generate_transaction_description_Donation_Education(Donation_Education_data_list, Donation_Education_templates,)
+
+Donation_Education_data = pd.DataFrame(transactions_Donation_Education)
+Donation_Education_data.head()
+
+Donation_Education_data.shape
+
+
+
+
+
+# print(food_dining_data)
+# print(transport_data)
+# print(Utilities_and_bills_data)
+# print(Shopping_Retail_data)
+# print(Healthcare_Wellness_data)
+# print(Subscriptions_Entertainment_data)
+# print(Financial_Services_Fees_data)
+# print(Donation_Education_data)
+
+all_data = pd.concat([food_dining_data, transport_data, Utilities_and_bills_data, Shopping_Retail_data, Healthcare_Wellness_data, Subscriptions_Entertainment_data, Financial_Services_Fees_data, Donation_Education_data], ignore_index=True)
+all_data = all_data.sample(frac=1).reset_index(drop=True)
+all_data.columns = ['description']
+
+description_list = all_data['description'].tolist()
+
+random.choice(description_list)
+
+!pip install pdfplumber
+
+import pdfplumber as pdf
+
+def extract(file_path):
+  with pdf.open(file_path) as pdf_file:
+    text = ""
+    for page in pdf_file.pages:
+      text += page.extract_text()
+  return text
+
+import re
+
+def preproccesing(text):
+  cleaned_text = re.sub(r'\s+','',text)
+  cleaned_text = re.sub(r'[\n\t]','',cleaned_text)
+  text_with_spaces = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)  # Adds space between lowercase and uppercase letters
+  text_with_spaces = re.sub(r'([a-zA-Z])(\d)', r'\1 \2', text_with_spaces)  # Adds space between letters and numbers
+  text_with_spaces = re.sub(r'(\d)([a-zA-Z])', r'\1 \2', text_with_spaces)  # Adds space between numbers and letters
+  text_with_spaces = re.sub(r'(\d{2})(\d{2})(\d{4})', r'\1 \2 \3', text_with_spaces)
+  return text_with_spaces
+
+
+
+
+
+def output(clean_text,i):
+  with open(f'/content/drive/MyDrive/colab data/data/bank statement/clean_text{i}.txt', "w") as file:
+    file.write(clean_text)
+
+file_path_list = [
+    "/content/drive/MyDrive/colab data/data/bank statement/Statement-2024-11-21.pdf",
+    "/content/drive/MyDrive/colab data/data/bank statement/chase.pdf",
+    "/content/drive/MyDrive/colab data/data/bank statement/chase1.pdf",
+    "/content/drive/MyDrive/colab data/data/bank statement/creditboa.pdf",
+    "/content/drive/MyDrive/colab data/data/bank statement/debitboa.pdf",
+    "/content/drive/MyDrive/colab data/data/bank statement/rajazolve.pdf"
+]
+num=0
+
+def excutebankpdf(file_path,i):
+  text = extract(file_path)
+  clean_text = preproccesing(text)
+  return clean_text
+ # output(clean_text,i)
+
+# for i in file_path_list:
+#   excutebankpdf(i,num)
+#   #num=num+1
+
+text = []
+for i in range(0,len(file_path_list)):
+  print(i)
+  text.append(excutebankpdf(file_path_list[i],num))
+
+text[1]
+
+"""# pdf -> extract data test using nlp model"""
+
+import spacy
+from spacy.tokens import DocBin
+
+with open(".txt", "r") as file:
+    text = file.read()
+
+# print(text[1])
+
+
+
+"""# Chase Bank"""
+
+import random
+from faker import Faker
+from datetime import datetime, timedelta
+
+# Initialize Faker for generating synthetic data
+
+def generate_synthetic_statement(raw_text):
+  faker = Faker()
+  city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+  texas_city_list = city_texas["Names"].tolist()
+
+  fake_details = {}
+  random_city_name = random.choice(texas_city_list)
+  random_digit = random.randint(0, 9999)
+  zip_code = f"7{random_digit:04}"
+
+  fake_details["faker_name"] = faker.name()
+  fake_details["faker_account_number"] = faker.numerify("00#########")
+  faker_start_date = faker.date_between(start_date='-30y', end_date='today')
+  fake_details["format_start_date"] = faker_start_date.strftime("%B %d, %Y")
+  faker_end_date = faker_start_date + timedelta(days=30)
+  fake_details["format_end_date"] = faker_end_date.strftime("%B %d, %Y")
+  fake_details["faker_address"] = faker.street_address()
+  fake_details["fake_subaddress"] = f"{random_city_name} TX {zip_code}"
+  fake_details["faker_start_amount"] = round(random.uniform(10, 1000),2)
+
+  all_data = pd.concat([food_dining_data, transport_data, Utilities_and_bills_data, Shopping_Retail_data, Healthcare_Wellness_data, Subscriptions_Entertainment_data, Financial_Services_Fees_data, Donation_Education_data], ignore_index=True)
+  all_data = all_data.sample(frac=1).reset_index(drop=True)
+  all_data.columns = ['description']
+  description_list = all_data[ 'description'].tolist()
+
+  transaction_date = []
+  transaction_decription = []
+  transaction_amount = []
+  for _ in range(30):
+    date = faker.date_between_dates(date_start=faker_start_date, date_end=faker_end_date)
+    transaction_date.append(date.strftime("%m/%d"))
+    transaction_decription.append(random.choice(description_list))
+    transaction_amount.append(round(random.uniform(-100, 300), 2))
+  transaction_date.sort()
+
+  random_number_trans1 = random.randint(7, 20)
+  random_number_trans2 = random.randint(1, 10)
+  fake_details["transcation_1"] = ""
+  fake_details["transcation_2"] = ""
+  current_balance = fake_details["faker_start_amount"]
+  card_no = random.randint(1000,9999)
+  j=0
+  for i in range(random_number_trans1):
+    spend = random.choice(transaction_amount)
+    current_balance += spend
+    fake_details["transcation_1"] += f"{transaction_date[i]} {random.choice(transaction_decription)} {spend} {round(current_balance,2)}\n"
+    j=i
+
+
+  for i in range(random_number_trans2):
+    spend = random.choice(transaction_amount)
+    current_balance += spend
+    fake_details["transcation_2"] += f"{transaction_date[j]} Card Purchase {random.choice(transaction_decription)} {spend} {round(current_balance,2)}\n{card_no}\n"
+    j=j+1
+
+
+  fake_details["ending_amount"] = round(current_balance,2)
+
+  fake_details["noise_positive_number"] = 0
+  fake_details["noise_random_number"] = random.randint(-79, 79)
+  fake_details["noise_negative_number"] = 0
+  for i in range(len(transaction_amount)):
+    if transaction_amount[i] < 0:
+      fake_details["noise_negative_number"] += transaction_amount[i]
+    else:
+      fake_details["noise_positive_number"] += transaction_amount[i]
+
+  fake_details["noise_positive_number"] = round(fake_details["noise_positive_number"],2)
+  fake_details["noise_negative_number"] = round(fake_details["noise_negative_number"],2)
+
+
+
+  fakerDetails()
+  # Generate random replacements
+  synthetic_data = raw_text
+  synthetic_data = synthetic_data.replace("LOKESH PARA", fake_details["faker_name"])
+  synthetic_data = synthetic_data.replace("00599832725", fake_details["faker_account_number"])
+  synthetic_data = synthetic_data.replace("October 12, 2024", fake_details["format_start_date"])
+  synthetic_data = synthetic_data.replace("November 14, 2024", fake_details["format_end_date"])
+  synthetic_data = synthetic_data.replace("4125 DARLINGTON WAY", fake_details["faker_address"])
+  synthetic_data = synthetic_data.replace("MCKINNEY TX 75071", fake_details["fake_subaddress"])
+  synthetic_data = synthetic_data.replace("$1.44", f"${fake_details['faker_start_amount']}")
+  synthetic_data = synthetic_data.replace("$21.19", f"${fake_details['ending_amount']}")
+  synthetic_data = synthetic_data.replace(raw_text[1555:1938], fake_details['transcation_1'])
+  synthetic_data = synthetic_data.replace(raw_text[2217:2464], fake_details['transcation_2'])
+  synthetic_data = synthetic_data.replace("1,152.00",f"{fake_details['noise_positive_number']}")
+  synthetic_data = synthetic_data.replace("-16.00",f"{fake_details['noise_random_number']}")
+  synthetic_data = synthetic_data.replace("-1,116.00",f"{fake_details['noise_negative_number']}")
+
+  # Modify transaction details
+
+
+  return synthetic_data
+
+def modified_statement_to_text(synthetic_statement,i):
+  with open(f"/content/drive/MyDrive/colab data/data/bank statement/modified_statements/chase_bank_4pages_statement{i}.txt", "w") as file:
+    file.write(synthetic_statement)
+
+for i in range(20):
+  modified_statement_to_text(generate_synthetic_statement(text[1]),i)
+
+# # print(generate_synthetic_statement(raw_text)) 2208 2463
+# print(generate_synthetic_statement(raw_text)[1567:1938])
+# generate_synthetic_statement(raw_text)[2217:2464]
+print(text[1][1556:1938])
+fakerDetails()
+fake_details
+str(fake_details['faker_name'])
+
+from datetime import timedelta
+
+s = faker.date_object()
+e = s + timedelta(days=30)
+print(fake.date_between_dates(date_start=s, date_end=e))
+print(s,e)
+
+faker = Faker()
+city_texas = pd.read_csv('/content/drive/MyDrive/colab data/data/texas_city.csv')
+texas_city_list = city_texas["Names"].tolist()
+random_city_name = random.choice(texas_city_list)
+random_digit = random.randint(0, 9999)
+zip_code = f"7{random_digit:04}"
+
+faker_name = faker.name()
+faker_account_number = faker.numerify("00#########")
+faker_start_date = faker.date_between(start_date='-30y', end_date='today')
+format_start_date = faker_start_date.strftime("%B %d, %Y")
+faker_end_date = faker_start_date + timedelta(days=30)
+format_end_date = faker_end_date.strftime("%B %d, %Y")
+faker_address = faker.street_address()
+fake_subaddress = f"{random_city_name} TX {zip_code}"
+faker_start_amount = round(random.uniform(10, 1000),2)
+
+all_data = pd.concat([food_dining_data, transport_data, Utilities_and_bills_data, Shopping_Retail_data, Healthcare_Wellness_data, Subscriptions_Entertainment_data, Financial_Services_Fees_data, Donation_Education_data], ignore_index=True)
+all_data = all_data.sample(frac=1).reset_index(drop=True)
+all_data.columns = ['description']
+description_list = all_data['description'].tolist()
+
+transaction_date = []
+transaction_decription = []
+transaction_amount = []
+for _ in range(30):
+  date = faker.date_between_dates(date_start=faker_start_date, date_end=faker_end_date)
+  transaction_date.append(date.strftime("%m/%d"))
+  transaction_decription.append(random.choice(description_list))
+  transaction_amount.append(round(random.uniform(-100, 300), 2))
+transaction_date.sort()
+
+ending_amont = round((faker_start_amount + sum(transaction_amount)),2)
+
+positive_number = 0
+random_number = random.randint(-79, 79)
+negative_number = 0
+for i in range(len(transaction_amount)):
+  if transaction_amount[i] < 0:
+    negative_number += transaction_amount[i]
+  else:
+    positive_number += transaction_amount[i]
+
+positive_number = round(positive_number,2)
+negative_number = round(negative_number,2)
+
+print(faker_name)
+print(faker_account_number)
+print(format_start_date)
+print(format_end_date)
+print(faker_address)
+print(fake_subaddress)
+print(faker_start_amount)
+print(ending_amont)
+print(transaction_date)
+print(transaction_decription)
+print(transaction_amount)
+print(positive_number)
+print(negative_number)
+print(random_number)
+
+all_data = pd.concat([food_dining_data, transport_data, Utilities_and_bills_data, Shopping_Retail_data, Healthcare_Wellness_data, Subscriptions_Entertainment_data, Financial_Services_Fees_data, Donation_Education_data], ignore_index=True)
+all_data = all_data.sample(frac=1).reset_index(drop=True)
+all_data.columns = ['description']
+description_list = all_data['description'].tolist()
+
+transaction_date = []
+transaction_decription = []
+transaction_amount = []
+for _ in range(30):
+  date = faker.date_between_dates(date_start=faker_start_date, date_end=faker_end_date)
+  transaction_date.append(date.strftime("%m/%d"))
+  transaction_decription.append(random.choice(description_list))
+  transaction_amount.append(round(random.uniform(-100, 300), 2))
+transaction_date.sort()
+
+print(transaction_date)
+print(transaction_decription)
+print(transaction_amount)
+
+round(random.uniform(1, 1000), 2)
 
